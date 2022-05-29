@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MDM 翻译
 // @description  Master Duel Meta 卡片名称、效果翻译
-// @version      0.1
+// @version      0.2
 // @author       Fwindy
 // @match        https://www.masterduelmeta.com/*
 // @icon         https://www.google.com/s2/favicons?domain=masterduelmeta.com
@@ -9,6 +9,7 @@
 // @connect      ygocdb.com
 // @grant        GM_xmlhttpRequest
 // @grant        window.onurlchange
+// @license      MIT
 
 // ==/UserScript==
 
@@ -53,7 +54,14 @@
                             cardType.innerText = /^[^\/]*/.exec(
                                 result.text.types
                             )[0];
-                        cardDescription.innerText = result.text.desc;
+                        if (result.text.pdesc) {
+                            cardDescription.querySelector('.pendulum-eff').innerText = '[灵摆效果]';
+                            cardDescription.querySelector('.pendulum-eff + span').innerText = result.text.pdesc;
+                            cardDescription.querySelector('.monster-eff').innerText = '[怪兽效果]';
+                            cardDescription.querySelector('.monster-eff + span').innerText = result.text.desc;
+                        } else {
+                            cardDescription.innerText = result.text.desc;
+                        }
                     }
                 },
             });
@@ -82,7 +90,14 @@
                                 cardType.innerText = /^[^\/]*/.exec(
                                     result.text.types
                                 )[0];
-                            cardDescription.innerText = result.text.desc;
+                            if (result.text.pdesc) {
+                                cardDescription.querySelector('.pendulum-eff').innerText = '[灵摆效果]';
+                                cardDescription.querySelector('.pendulum-eff + span').innerText = result.text.pdesc;
+                                cardDescription.querySelector('.monster-eff').innerText = '[怪兽效果]';
+                                cardDescription.querySelector('.monster-eff + span').innerText = result.text.desc;
+                            } else {
+                                cardDescription.innerText = result.text.desc;
+                            }
                         }
                     }
                 },
