@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         MDM 翻译
 // @description  Master Duel Meta 卡片名称、效果翻译
-// @version      0.2
+// @version      0.3
 // @author       Fwindy
 // @match        https://www.masterduelmeta.com/*
 // @icon         https://www.google.com/s2/favicons?domain=masterduelmeta.com
@@ -14,31 +14,31 @@
 // ==/UserScript==
 
 (function () {
-    "use strict";
+    "use strict"
     onload = () => {
-        translate();
-        const observer = new MutationObserver(tooltipTranslate);
+        translate()
+        const observer = new MutationObserver(tooltipTranslate)
         const config = {
             attributes: false,
             childList: true,
             characterData: false,
-        };
-        observer.observe(document.querySelector("#tooltip-root"), config);
-    };
+        }
+        observer.observe(document.querySelector("#tooltip-root"), config)
+    }
     if (window.onurlchange === null) {
-        window.addEventListener("urlchange", translate);
+        window.addEventListener("urlchange", translate)
     }
 
-    function translate() {
+    function translate () {
         if (location.href.match(/masterduelmeta.com\/cards/)?.length > 0) {
             const hrefName = decodeURIComponent(
                 decodeURI(/([^\/]*)$/.exec(location.href)[0])
-            );
-            const cardName = document.getElementsByClassName("h1")[0];
+            )
+            const cardName = document.getElementsByClassName("h1")[0]
             const cardType =
-                document.getElementsByClassName("monster-types")[0];
+                document.getElementsByClassName("monster-types")[0]
             const cardDescription =
-                document.getElementsByClassName("card-desc")[0];
+                document.getElementsByClassName("card-desc")[0]
 
             GM_xmlhttpRequest({
                 method: "GET",
@@ -47,33 +47,35 @@
                 onload: function (r) {
                     if (r.status === 200) {
                         const result = r.response.result.filter(
-                            (x) => x.en_name === hrefName
-                        )[0];
-                        cardName.innerText = result.cn_name;
+                            (x) => x.en_name === hrefName || x.wiki_en === hrefName
+                        )[0] || r.response.result[0]
+                        cardName.innerText = result.cn_name
                         if (cardType?.innerText)
                             cardType.innerText = /^[^\/]*/.exec(
                                 result.text.types
-                            )[0];
+                            )[0]
                         if (result.text.pdesc) {
-                            cardDescription.querySelector('.pendulum-eff').innerText = '[灵摆效果]';
-                            cardDescription.querySelector('.pendulum-eff + span').innerText = result.text.pdesc;
-                            cardDescription.querySelector('.monster-eff').innerText = '[怪兽效果]';
-                            cardDescription.querySelector('.monster-eff + span').innerText = result.text.desc;
+                            [...cardDescription.children].forEach(x => x.remove())
+                            const defaultClass = cardDescription.parentElement.className
+                            appendNode(cardDescription, defaultClass+' pendulum-eff', '[灵摆效果]')
+                            appendNode(cardDescription, defaultClass, result.text.pdesc)
+                            appendNode(cardDescription, defaultClass+' monster-eff', '[怪兽效果]')
+                            appendNode(cardDescription, defaultClass, result.text.desc)
                         } else {
-                            cardDescription.innerText = result.text.desc;
+                            cardDescription.innerText = result.text.desc
                         }
                     }
                 },
-            });
+            })
         }
     }
 
-    function tooltipTranslate() {
+    function tooltipTranslate () {
         const cardName = document.querySelector(
             "#tooltip-root div.card-specs > div.spec-container > span > b"
-        );
-        const cardType = document.querySelector("#tooltip-root span.monster-types > b");
-        const cardDescription = document.querySelector("#tooltip-root span.card-desc");
+        )
+        const cardType = document.querySelector("#tooltip-root span.monster-types > b")
+        const cardDescription = document.querySelector("#tooltip-root span.card-desc")
         if (cardName?.innerText) {
             GM_xmlhttpRequest({
                 method: "GET",
@@ -82,26 +84,35 @@
                 onload: function (r) {
                     if (r.status === 200) {
                         const result = r.response.result.filter(
-                            (x) => x.en_name === cardName.innerText
-                        )[0];
+                            (x) => x.en_name === cardName.innerText || x.wiki_en === cardName.innerText
+                        )[0] || r.response.result[0]
                         if (result?.cn_name) {
-                            cardName.innerText = result.cn_name;
+                            cardName.innerText = result.cn_name
                             if (cardType)
                                 cardType.innerText = /^[^\/]*/.exec(
                                     result.text.types
-                                )[0];
+                                )[0]
                             if (result.text.pdesc) {
-                                cardDescription.querySelector('.pendulum-eff').innerText = '[灵摆效果]';
-                                cardDescription.querySelector('.pendulum-eff + span').innerText = result.text.pdesc;
-                                cardDescription.querySelector('.monster-eff').innerText = '[怪兽效果]';
-                                cardDescription.querySelector('.monster-eff + span').innerText = result.text.desc;
+                                [...cardDescription.children].forEach(x => x.remove())
+                                const defaultClass = cardDescription.parentElement.className
+                                appendNode(cardDescription, defaultClass+' pendulum-eff', '[灵摆效果]')
+                                appendNode(cardDescription, defaultClass, result.text.pdesc)
+                                appendNode(cardDescription, defaultClass+' monster-eff', '[怪兽效果]')
+                                appendNode(cardDescription, defaultClass, result.text.desc)
                             } else {
-                                cardDescription.innerText = result.text.desc;
+                                cardDescription.innerText = result.text.desc
                             }
                         }
                     }
                 },
-            });
+            })
         }
     }
-})();
+
+    function appendNode (target, className, text) {
+        const span = document.createElement('span')
+        span.className = className
+        span.innerText = text
+        target.appendChild(span)
+    }
+})()
